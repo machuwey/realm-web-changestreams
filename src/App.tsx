@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Realm from "realm-web";
 import { useTransition, animated } from "react-spring";
 import { timeSince } from "./utils";
 import { tokenImages, tokenTicker } from "./tokenImages";
 import { OpenNewWindow, User } from "iconoir-react";
+import { Reorder } from "framer-motion";
 const app = new Realm.App({ id: "application-0-oolcn" });
 
 type Swap = {
@@ -22,13 +23,11 @@ type Swap = {
     timestamp: string;
 };
 
-const itemHeight = 24; // Height of each item
-const maxItems = 20; // Maximum number of items to display
-
 
 const App = () => {
   const [user, setUser] = useState<Realm.User | null>(null);
   const [displayEvents, setDisplayEvents] = useState<Swap[]>([]);
+  const prevDisplayEventsRef = useRef<string[]>([]);
 
   useEffect(() => {
     const login = async () => {
@@ -48,7 +47,7 @@ const App = () => {
     const initialData = await collection.find({}, { sort: { block_time: -1 } });
     setDisplayEvents(initialData);
     console.log("initialData", initialData);
-    
+     
       for await (const change of collection.watch()) {
         if (change.operationType === "insert") {
           setDisplayEvents((prevDisplayEvents) => {
@@ -85,19 +84,32 @@ const App = () => {
     login();
   }, []);
 
-  // Animation transitions
-  const transitions = useTransition(displayEvents, {
-    from: { transform: "translate3d(0,-40px,0)", opacity: 0 },
-    enter: { transform: "translate3d(0,0px,0)", opacity: 1 },
-    leave: { transform: "translate3d(0,-40px,0)", opacity: 0 },
-    update: { transform: "translate3d(0,0px,0)", opacity: 1 },
-    keys: displayEvents.map((item, index) => index),
-  });
+  useEffect(() => {
+    // Update the ref to hold the current IDs of displayEvents
+    prevDisplayEventsRef.current = displayEvents.map(item => item._id);
+  }, [displayEvents]); // This effect runs whenever displayEvents changes
 
+const isItemNew = (id: string) => {
+  return !prevDisplayEventsRef.current.includes(id);
+}
+
+
+ 
+
+  function addItem(): void {
+    setDisplayEvents((prevDisplayEvents) => {
+      if (prevDisplayEvents.length > 0) {
+        const firstElement = { ...prevDisplayEvents[0] };
+        return [firstElement, ...prevDisplayEvents];
+      }
+      return prevDisplayEvents;
+    });
+  }
 
   return (
     <div className="App">
       <div className="text-3xl font-bold text-center mt-10">MiniSwapScan</div>
+      <button onClick={() => addItem()}>Add Item</button>
       {!!user && (
         <div className="App-header">
           {/* Block Quote */}
@@ -106,10 +118,21 @@ const App = () => {
               <p>
                 This is a demonstration app of using Apibara to build a
                 a real-time swap scanner.
+                <a
+                  href="https://github.com/machuwey/apibara-example-server"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-500"
+                >
+                  {" "}
+                  View the server code
+                </a>
+                
               </p>
             </blockquote>
           </div>
           <div>
+          <Reorder.Group axis="y" values={displayEvents} onReorder={setDisplayEvents}>
             <table className="table-auto w-full">
               <thead>
                 <tr>
@@ -121,9 +144,17 @@ const App = () => {
                 </tr>
               </thead>
 
-              <tbody className="">
-                {transitions((style, item, t, index) => (
-                  <animated.tr key={index} style={style}>
+              <Reorder.Group as="tbody" axis="y" values={displayEvents} onReorder={setDisplayEvents}>
+              {displayEvents.map((item, index) => (
+                     <Reorder.Item
+                     key={item._id}
+                     value={item}
+                     as="tr"
+                     initial={{ y: isItemNew(item._id) ? -50 : 0, opacity: 0 }}
+                     animate={{ y: 0, opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                   >
                      
                     <td>{index}</td>
 
@@ -212,10 +243,11 @@ const App = () => {
                         }
                     </td>
                     
-                  </animated.tr>
+                  </Reorder.Item>
                 ))}
-              </tbody>
+              </Reorder.Group>
             </table>
+          </Reorder.Group>
           </div>
         
         </div>
