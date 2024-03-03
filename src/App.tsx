@@ -109,7 +109,7 @@ const isItemNew = (id: string) => {
   return (
     <div className="App">
       <div className="text-3xl font-bold text-center mt-10">MiniSwapScan</div>
-      <button onClick={() => addItem()}>Add Item</button>
+      <button onClick={() => addItem()}>Add Item(For testing animation purposes)</button>
       {!!user && (
         <div className="App-header">
           {/* Block Quote */}
