@@ -109,25 +109,28 @@ const isItemNew = (id: string) => {
   return (
     <div className="App">
       <div className="text-3xl font-bold text-center mt-10">MiniSwapScan</div>
+      {/*  
       <button onClick={() => addItem()}>Add Item(For testing animation purposes)</button>
+      */}
       {!!user && (
         <div className="App-header">
           {/* Block Quote */}
-          <div className="text-center bg-gray-100 p-4 rounded-lg">
-            <blockquote>
-              <p>
-                This is a demonstration app of using Apibara to build a
-                a real-time swap scanner.
+          <div className="text-center bg-gray-100 p-4 rounded-lg shadow-md">
+            <blockquote className="italic">
+              <p className="mb-4">
+                Welcome to a demonstration app utilizing Apibara to create a real-time swap scanner.
                 <a
                   href="https://github.com/machuwey/apibara-example-server"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-500"
+                  className="text-blue-500 hover:text-blue-700"
                 >
-                  {" "}
                   View the server code
                 </a>
-                
+                . This application operates by indexing and streaming AVNU contract swap events into a MongoDB database, allowing the frontend to listen for new swap events and display them in real-time.
+              </p>
+              <p>
+                Leverage this technology to build any real-time application imaginable, from dynamic dashboards to instant notifications, or even to index an NFT collection.
               </p>
             </blockquote>
           </div>
